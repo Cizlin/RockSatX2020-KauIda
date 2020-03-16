@@ -1,0 +1,28 @@
+#! /bin/bash
+#
+#Kauai Community College Project KauIda
+#10/31/2019
+#This bash file starts adb server, commands the thetaV to capture video
+#transfers video to the Rpi
+#and then stops the thetaVscript.service from continuing to run forever.
+#This file is called by the thetaVscript.service during the RPi boot process
+#
+
+
+echo  Script running
+sleep 10							#bout 7 seconds for theta boot
+sudo adb start-server				#start Adroid Debug Bridge deamon
+ptpcam --set-property=0x5013 --val=0x8002	#change to video mode (0x8005 is live stream)
+sleep 5
+python /home/pi/gopro.py			#Run the GoPro
+ptpcam -R 0x101c,0,0,1				#Start video capture
+sleep 20							#Control how long to record
+ptpcam -R 0x1018,0xFFFFFFFF			#Stop video capture
+sleep 5
+
+echo ok  
+echo Capture complete. Begin transfer to Pi 
+
+sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos	#pull the video off Theta and copy to pi
+echo transfer complete
+sudo systemctl stop thetaVscript.service	#stop the service that keeps running this script

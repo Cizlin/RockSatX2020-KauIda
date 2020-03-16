@@ -1,0 +1,15 @@
+[Unit]
+Description=ThetaV service
+After=multi-user.target
+
+[Service]
+
+ExecStart=/bin/bash -c '/home/pi/thetaVscript > /home/pi/thetaVscript.log 2>&1'
+
+
+[Timer]
+OnBootSec=5	#amount of time after boot before activating service
+
+
+[Install]
+WantedBy=multi-user.target
