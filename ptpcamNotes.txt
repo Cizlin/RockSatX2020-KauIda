@@ -1,0 +1,57 @@
+pi@raspberrypi:~ $ ptpcam -h
+USAGE: ptpcam [OPTION]
+
+Options:
+  --bus=BUS-NUMBER             USB bus number
+  --dev=DEV-NUMBER             USB assigned device number
+  -r, --reset                  Reset the device
+  -l, --list-devices           List all PTP devices
+                               
+  -i, --info                   Show device info
+  -o, --list-operations        List all supported operations
+  -p, --list-properties        List all supported device properties
+                               (e.g. focus mode, focus distance, etc.)
+  -s, --show-property=NUMBER   Display property details (or set its value,
+                               if used in conjunction with --val)
+  --set-property=NUMBER        Set property value (--val required)
+  --set=PROP-NAME              Set property by name (abbreviations allowed)
+  --val=VALUE                  Property value (numeric for --set-property and
+                               string or numeric for --set)
+  --show-all-properties        Show all properties values
+  --show-unknown-properties    Show unknown properties values
+                               
+  -L, --list-files             List all files
+  -g, --get-file=HANDLE        Get file by given handler
+  -G, --get-all-files          Get all files
+                               
+  -d, --delete-object=HANDLE   Delete object (file) by given handle
+  -D, --delete-all-files       Delete all files form camera
+                               
+  -c, --capture                Initiate capture
+  --loop-capture=N             Perform N times capture/get/delete sequence
+  --interval=N                 Set loop capture interval in seconds
+                               Following Nikon commands are EXPERIMENTAL!
+  --nikon-ic, --nic            Initiate Nikon Direct Capture (no download!)
+  --nikon-dc, --ndc            Initiate Nikon Direct Capture and download
+                               
+  -R reqCode[,P1,P2,P3,P4,P5,d] Send a raw generic request with parameters
+                               parameters Pn are optionnal and can be set to 0
+                               if not used (params values must be hexadecimal)
+                               d, is the data direction (r=read, n=no data, 
+                               filename or value to send in hexadecimal).
+                               The default data direction is 'r'.
+                               If you want to send data, give the file name
+                               containing data to send, or, if the data is short,
+                               you can directly write the value in hexadecimal.
+                               The result data and response will be displayed
+                      example: ptpcam -R 0x1015,0x5003,0,0,0,0,r
+                               ptpcam -R 0x1016,0x5003,0,0,0,0,image_size.bin
+                               ptpcam -R 0x1016,0x501b,0,0,0,0,0x88130000
+                               ptpcam -R 0x100e,0,0,0,0,0,n
+                               
+  --overwrite                  Force file overwrite while savingto disk
+  -f, --force                  Talk to non PTP devices
+  -v, --verbose                Be verbose (print more debug)
+  -h, --help                   Print this help message
+
+ 
