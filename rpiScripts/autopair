@@ -1,0 +1,12 @@
+# Programmed by Aaron Borger
+# Called at bottom of ~/.bashrc which runs at start up
+# Turns bluetooth on and since the bluefruit is already paired it connects automatically
+# Will need to update to keep to connect until succesful
+
+#!/bin/bash
+bluetoothctl << EOF
+
+power on
+
+
+EOF
