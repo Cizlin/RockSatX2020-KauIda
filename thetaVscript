@@ -14,6 +14,7 @@ sleep 10					#bout 7 seconds for theta boot
 sudo adb start-server				#start Adroid Debug Bridge deamon
 ptpcam --set-property=0x5013 --val=0x8002	#change to video mode (0x8005 is live stream)
 sleep 5
+python /home/pi/gopro.py
 ptpcam -R 0x101c,0,0,1				#Start video capture
 sleep 200					#Control how long to record
 ptpcam -R 0x1018,0xFFFFFFFF			#Stop video capture
