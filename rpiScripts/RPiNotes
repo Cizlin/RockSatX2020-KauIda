@@ -1,0 +1,174 @@
+Properly shutdown pi:
+sudo shutdown -h now
+
+
+INSTALL Raspian Buster
+Go to https://www.raspberrypi.org/downloads/noobs/ and follow instructions to install full Raspian
+
+Then update it:
+
+~ $ sudo apt-get update
+
+pi@raspberrypi:sudo apt-get -y dist-upgrade
+_______________________________________________
+INSTALL MTP tools
+pi@raspberrypi:~ $ sudo apt-get install mtp-tools
+
+_____________________________________________
+
+INSTALL PTPCAM
+THIS LINk's INSTRUCTION WORKS, except do each apt-get separately. Use sudo before each apt-get
+https://emsi.wordpress.com/2015/06/10/raspberry-pi-and-dslr-remote-capture-control/
+_________________________________________________
+INSTALL Android Debug Bridge:
+sudo apt-get update
+sudo apt-get install -y android-tools-adb
+
+Now you can log into the Android device (thetaV) 
+pi@raspberrypi:~/Desktop $ adb shell ls
+pi@raspberrypi:~/Desktop $ adb shell pm list packages
+
+man adb 	#Manual that describes all the adb commands
+____________________________________________________________
+
+CREATE and INSTALL a script and a service so that the script will run when the RPi boots up
+
+My script is called "thetaVscript". It is located in /home/pi
+My service is called "thetaVscript.service". It is located in /etc/systemd/system.
+The service calls the script at boot up.
+
+A description of three different methods can be found at https://learn.sparkfun.com/tutorials/how-to-run-a-raspberry-pi-program-on-startup
+Method 3 uses systemd, as this is robust an dependable. This is what we are doing.
+
+Instructions:
+Create a text file called "thetaVscript" located in /home/pi. Here are the contents 
+(which you can copy and paste).
+
+~ $sudo nano thetaVscript
+------------------------------------------------------
+#! /bin/bash
+#
+#Kauai Community College Project KauIda
+#10/31/2019
+#This bash file starts adb server, commands the thetaV to capture video
+#transfers video to the Rpi
+#and then stops the thetaVscript.service from continuing to run forever.
+#This file is called by the thetaVscript.service during the RPi boot process
+#
+
+
+echo  Script running
+sleep 10					#bout 7 seconds for theta boot
+sudo adb start-server				#start Adroid Debug Bridge deamon
+ptpcam --set-property=0x5013 --val=0x8002	#change to video mode (0x8005 is live stream)
+sleep 5
+ptpcam -R 0x101c,0,0,1				#Start video capture
+sleep 20					#Control how long to record
+ptpcam -R 0x1018,0xFFFFFFFF			#Stop video capture
+sleep 5
+
+echo ok  
+echo Capture complete. Begin transfer to Pi 
+
+sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos	#pull the video off Theta and copy to pi
+echo transfer complete
+sudo systemctl stop thetaVscript.service	#stop the service that keeps running this script
+----------------------------------------------
+
+Change the permissions of thetaVscript so that is executable by anyone:
+~ $ sudo chmod u+x /home/pi/thetaVscript
+
+At this point you should test that the script works. 
+First Connect camera and test
+that PTPCAM will work and communicate with the camera. THe camera takes about 8 seconds to boot up. Make sure ptpcam 
+works by typing
+pi@raspberrypi:~ $ ptpcam -l
+
+Listing devices...
+bus/dev	vendorID/prodID	device model
+001/012	0x05CA/0x2714	RICOH THETA V
+
+
+
+If you get an error wait a few minutes and then reset andtry again. The errors occur when 
+you have the RPi GUI running. Here is an example
+pi@raspberrypi:~ $ ptpcam -l
+
+Listing devices...
+bus/dev	vendorID/prodID	device model
+ERROR: Could not open session!
+Try to reset the camera.
+
+pi@raspberrypi:~ $ ptpcam --reset
+usb_get_endpoint_status(): Device or resource busy
+Resetting input pipe!
+usb_clear_stall_feature(): Device or resource busy
+usb_get_endpoint_status(): Device or resource busy
+usb_get_endpoint_status(): Device or resource busy
+usb_ptp_get_device_status(): Device or resource busy
+usb_ptp_device_reset(): Device or resource busy
+
+OK now run the script
+pi@raspberrypi:~ $ ./thetaVscript
+
+After xxx minutes, check that video was transferred to the Pi at
+/home/pi/Videos/100RICOH
+Check the log file for errors:
+~$nano /home/pi/thetaVscript.log  
+(there will be I/O error, but thats ok.Look for 100% transfer)
+
+Create a UNIT service:
+Create a text file called "thetaVscript.service" in the etc/systemd/system directory.
+
+~ $sudo nano /etc/systemd/system/thetaVscript.service
+----------------------------------------l----------------
+[Unit]
+Description=ThetaV service
+After=multi-user.target
+
+[Service]
+
+ExecStart=/bin/bash -c '/home/pi/thetaVscript > /home/pi/thetaVscript.log 2>&1'
+
+
+[Timer]
+OnBootSec=5	#amount of time after boot before activating service
+
+
+[Install]
+WantedBy=multi-user.target
+--------------------------------------------------------
+
+Run the service to make sure the script is called correctly:
+~$sudo systemctl start thetaVscipt.service
+
+Check the log file again
+
+
+Set to run script "thetaVscript" at boot up.
+pi@raspberrypi:~$sudo systemctl enable thetaVscript.service
+Created symlink /etc/systemd/system/multi-user.target.wants/thetaVscript.service → /etc/systemd/system/thetaVscript.service.
+
+You can also disable.
+pi@raspberrypi:~ $ sudo systemctl disable thetaVscript.service
+Removed /etc/systemd/system/multi-user.target.wants/thetaVscript.service.
+
+
+Change raspi-config file to boot to terminal
+pi@raspberrypi:~ $ sudo raspi-config
+
+
+
+HINTS:
+MP4 files are large. Delete them off the thetaV and RPi after each run:
+pi@raspberrypi:~ $ ptpcam -D
+Camera: RICOH THETA V
+Object 0x0000004e (R0010055.MP4) deleted.
+Object 0x0000004f (R0010056.MP4) deleted
+
+pi@raspberrypi:~ $ sudo rm -rf /home/pi/Videos/100RICOH
+
+
+
+
+
