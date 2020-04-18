@@ -30,17 +30,11 @@ Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
                       BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
 
 
-// A small helper
-/*void error(const __FlashStringHelper*err) {
-  Serial.println(err);
-  while (1);
-}*/
-
 Adafruit_BME680 bme; // I2C
 
 void setup(void)
 {
-  //while (!Serial);  // required for Flora & Micro
+
   delay(500);
 
   Serial.begin(115200);
@@ -54,21 +48,12 @@ void setup(void)
   {
     //error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
   }
-
-  /*if ( FACTORYRESET_ENABLE )
-  {
-    Serial.println(F("Performing a factory reset: "));
-    if ( ! ble.factoryReset() ){
-      error(F("Couldn't factory reset"));
-    }
-  }*/
-  
-  //ble.echo(false);
+  ble.echo(false);
 
   ble.sendCommandCheckOK(F("AT+GATTLIST"));
 
 
-  //ble.verbose(false);
+  ble.verbose(false);
   
   /* Wait for connection */
   ble.setMode(BLUEFRUIT_MODE_COMMAND);
@@ -98,7 +83,7 @@ char c;
 void loop(void)
 {
   
-  //Serial.println(F("loop"));
+
   //                                   RSSI
   //************************************************************************************//
   ble.println(F("AT+BLEGETRSSI"));
@@ -106,7 +91,8 @@ void loop(void)
   while ( ble.available() )
   {
     c = ble.read();
-    if (c != 'O' && c != 'K' && c != 'E' && c != 'R' && c != '-') {
+    //c != 'O' && c != 'K' && c != 'E' && c != 'R' && c != '-' && c != '\n' && c != '\r'
+    if (c >= '0' && c <= '9') {
       value_string[cur] = c;
       cur++;
      }
@@ -122,25 +108,22 @@ void loop(void)
   
   //                                Sensors
   //*********************************************************************************/
-  if (! bme.performReading()) {
-    Serial.println(F("Failed to perform reading :("));
-    return;
-  }
+
   // Temp
   ble.print(F("AT+GATTCHAR=2,"));
-  ble.println(bme.temperature);
+  ble.println(int(bme.temperature*100));
   // Pressure
   ble.print(F("AT+GATTCHAR=3,"));
   ble.println(bme.pressure);
   // Humidity
   ble.print(F("AT+GATTCHAR=4,"));
-  ble.println(bme.humidity);
+  ble.println(int(bme.humidity*100));
   // Gas
   ble.print(F("AT+GATTCHAR=5,"));
-  ble.println(bme.gas_resistance / 1000.0);
+  ble.println(bme.gas_resistance / 10);
   // Altitude
   ble.print(F("AT+GATTCHAR=6,"));
-  ble.println(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  ble.println(int(bme.readAltitude(SEALEVELPRESSURE_HPA)*100));
   
 
     delay(100);
