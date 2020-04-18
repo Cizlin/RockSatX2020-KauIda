@@ -34,6 +34,7 @@ Adafruit_BME680 bme; // I2C
 
 void setup(void)
 {
+
   delay(500);
 
   Serial.begin(115200);
@@ -47,7 +48,6 @@ void setup(void)
   {
     //error(F("Couldn't find Bluefruit, make sure it's in CoMmanD mode & check wiring?"));
   }
-  
   ble.echo(false);
 
   ble.sendCommandCheckOK(F("AT+GATTLIST"));
@@ -83,6 +83,7 @@ char c;
 void loop(void)
 {
   
+
   //                                   RSSI
   //************************************************************************************//
   ble.println(F("AT+BLEGETRSSI"));
@@ -107,6 +108,7 @@ void loop(void)
   
   //                                Sensors
   //*********************************************************************************/
+
   // Temp
   ble.print(F("AT+GATTCHAR=2,"));
   ble.println(int(bme.temperature*100));
